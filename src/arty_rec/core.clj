@@ -2,7 +2,10 @@
   (:refer-clojure :exclude [flatten])
   (:require [clojure.string :as string]))
 
-(defrecord Symbol [target])
+(def +default-modifiers+
+  {"capitalize" string/capitalize})
+
+(defrecord Symbol [target modifiers])
 (defrecord Choice [targets])
 
 (defn- interleave-long [x y]
@@ -10,10 +13,14 @@
     (concat (interleave (take min-length x) (take min-length y))
             (drop min-length x) (drop min-length y))))
 
+(defn- parse-symbol [s]
+  (let [[target & modifiers] (string/split s #"\.")]
+    (->Symbol target modifiers)))
+
 (defn- parse-string [s]
   (let [parts (string/split s #"#")
         plains (keep-indexed #(when (even? %1) (not-empty %2)) parts)
-        symbols (keep-indexed #(when (odd? %1) (->Symbol %2)) parts)]
+        symbols (keep-indexed #(when (odd? %1) (parse-symbol %2)) parts)]
     (interleave-long plains symbols)))
 
 (defn- parse [v]
@@ -30,12 +37,12 @@
   [input]
   (into {} (for [[k v] input] [k (parse v)])))
 
-(declare flatten flatten-value)
+(declare generate flatten-value)
 
 (defn- flatten-item [grammar value]
   (cond
     (string? value) value
-    (instance? Symbol value) (flatten grammar (:target value))
+    (instance? Symbol value) (reduce #((+default-modifiers+ %2) %1) (generate grammar (:target value)) (:modifiers value))
     (instance? Choice value) (flatten-value grammar (rand-nth (:targets value)))
     :else
     ;; This is not supposed to happen.
@@ -49,7 +56,7 @@
   "Generate a string from a grammar starting from the given symbol.
 
   The default symbol is `origin`."
-  ([grammar] (flatten grammar "origin"))
+  ([grammar] (generate grammar "origin"))
   ([grammar target]
    (if-let [value (get grammar target)]
      (flatten-value grammar value)
