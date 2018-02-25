@@ -11,7 +11,7 @@ tool for creating generative grammars, developed by [Kate Compton][compton].
 [the original JavaScript implementation][tracery.js], but for now it is what it
 is.
 
-Yes, the name is an anagram.
+Yes, the name is reference to the fact that for me, using Tracery is artistic recreation.
 
 ## Usage
 
