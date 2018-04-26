@@ -1,3 +1,3 @@
-# Unreleased
+# 0.1.0 (2018-04-26)
 
-* Nothing has been released yet.
+* Initial release.
